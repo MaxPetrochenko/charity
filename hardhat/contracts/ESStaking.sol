@@ -21,11 +21,15 @@ contract ESStaking is IESStaking, Ownable, ReentrancyGuard {
     uint constant rewardsIn = 1 minutes;
 
     ESStakingNFT nft;
-    
+    IESRewardPool pool;
+
+
     mapping(address => mapping(address => StakeBalance[])) balances; //user->token->values
     mapping(address => uint[]) nftCollection; // nft collection
+    //mapping()
 
-    constructor() Ownable(msg.sender) {
+    constructor(address _pool) Ownable(msg.sender) {
+        pool = IESRewardPool(_pool);
         nft = new ESStakingNFT();
     }
 
@@ -44,7 +48,7 @@ contract ESStaking is IESStaking, Ownable, ReentrancyGuard {
     function unstake(address sender, address tokenAddress, uint id) nonReentrant external { //not payable, staking tokens only
         require(balances[sender][tokenAddress].length > id, 'no token with this id staked by this sender');
         (uint balance, uint reward) = getBalance(sender, tokenAddress, id);
-        IESRewardPool(tokenAddress).transferRewardToUser(sender, reward);
+        pool.transferRewardToUser(tokenAddress, sender, reward);
         IERC20(tokenAddress).transfer(sender, balance);
         balances[sender][tokenAddress][id].value -= balance;
         uint _now = block.timestamp;
@@ -55,7 +59,7 @@ contract ESStaking is IESStaking, Ownable, ReentrancyGuard {
     function claimRewards(address sender, address tokenAddress, uint id) nonReentrant external { //not payable, staking tokens only
         require(balances[sender][tokenAddress].length > id, 'no token with this id staked by this sender');
         (, uint reward) = getBalance(sender, tokenAddress, id);
-        IESRewardPool(tokenAddress).transferRewardToUser(sender, reward);
+        pool.transferRewardToUser(tokenAddress, sender, reward);
         balances[sender][tokenAddress][id].lastRewardedAt = block.timestamp;
     }
 
@@ -64,7 +68,7 @@ contract ESStaking is IESStaking, Ownable, ReentrancyGuard {
         uint balance = balances[sender][tokenAddress][id].value;
         uint lastRewardedAt = Math.max(balances[sender][tokenAddress][id].stakedAt, balances[sender][tokenAddress][id].lastRewardedAt);
         uint numberOfCycles = ((block.timestamp - lastRewardedAt) / rewardsIn);
-        uint reward = numberOfCycles * IESRewardPool(tokenAddress).getRewardFee() * balance;
+        uint reward = (numberOfCycles *  balance) / pool.getRewardFee(tokenAddress);
         return (balance, reward);
     }
 
