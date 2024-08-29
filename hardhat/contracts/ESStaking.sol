@@ -68,7 +68,8 @@ contract ESStaking is IESStaking, Ownable, ReentrancyGuard {
         uint balance = balances[sender][tokenAddress][id].value;
         uint lastRewardedAt = Math.max(balances[sender][tokenAddress][id].stakedAt, balances[sender][tokenAddress][id].lastRewardedAt);
         uint numberOfCycles = ((block.timestamp - lastRewardedAt) / rewardsIn);
-        uint reward = (numberOfCycles *  balance) / pool.getRewardFee(tokenAddress);
+        uint userPercent = 100 * balance / IERC20(tokenAddress).balanceOf(address(this));
+        uint reward = userPercent * numberOfCycles * pool.getRewardPerCycle(tokenAddress);
         return (balance, reward);
     }
 
