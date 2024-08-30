@@ -8,6 +8,8 @@ import "../utils/Structs.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+// proxy + implementation?
+
 contract ESRewardPoolV1 is IESRewardPool, Ownable {
 
     mapping(address => uint) currentFees;

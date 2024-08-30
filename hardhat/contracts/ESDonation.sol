@@ -24,7 +24,18 @@ import "./Common/Transferer.sol";
 4. access control, кто может добавлять/удалять заявки (голосовалка для менеджеров + админские полномочия)     
 
  */
+ struct Donation {
+    //uint id; // хранить ли в базе доп инфу по айди? что за доп инфа должна быть?
+    uint totalNeeded;
+    uint totalTransferred;
+    address tokenAddress;
+    
+}
+
 contract ESDonation is Transferer {
+    
+    mapping(uint => Donation) donations;
+    
     function foo(address tokenAddress, uint amount) external payable {
         assert(amount > 0);
     }
