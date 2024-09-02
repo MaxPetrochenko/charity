@@ -25,23 +25,55 @@ import "./Common/Transferer.sol";
 4. access control, кто может добавлять/удалять заявки (голосовалка для менеджеров + админские полномочия)     
 
  */
+ enum DonationState {
+    Pending,
+    Registered,
+    Dismissed,
+    Complete,
+    ApprovedByWithdrawers,
+    ApprovedByManagers
+ }
+
  struct Donation {
     //uint id; // хранить ли в базе доп инфу по айди? что за доп инфа должна быть?
     uint totalNeeded;
     uint totalTransferred;
     address tokenAddress;
-    address withdrawalAdress;
+    address withdrawalAddress;
+    address[] withdrawalApprovers;
+    DonationState state;
+}
+//TODO
+//разобраться с аппрувами (аппрув заявки, аппрув виздро, ручная  отправка не нужна, а значит и не нужны другие аппрувы. стейт пока оставим)
+//delete pendingDonations
+struct QApproval {
+    uint managerApprovals;
+    uint withdrawalApprovals;
+    mapping(address => bool) managersApproved;
+    mapping(address => bool) withdrawersApproved;
+}
+
+struct Approval {
+    uint approvals;
+    mapping(address => bool) approved;
 }
 
 contract ESDonation is Transferer, AccessControl {
+    using Arrays for uint[];
+
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     uint donationIndex = 0;
-    uint pendingIndex = 0;
     mapping(uint => Donation) donations;
-    mapping(uint => Donation) pendingDonations;
-    mapping(uint => uint) approvals;
+    mapping(uint => QApproval) approvals;
+
+    mapping(uint => Approval) donationApproved;
     
     address[] managers;
+
+    modifier onlyVoted(uint _donationId) {
+        Donation storage donation = donations[_donationId];
+        _;
+    }
 
 
     constructor(address[] memory _managers) {
@@ -85,26 +117,63 @@ contract ESDonation is Transferer, AccessControl {
     }
 
     function registerFundrasing(Donation calldata _donation) external {
-        pendingDonations[pendingIndex++] = Donation(
+        donations[donationIndex++] = Donation(
             _donation.totalNeeded,
             0, 
             _donation.tokenAddress, 
-            _donation.withdrawalAdress
+            _donation.withdrawalAddress,
+            _donation.withdrawalApprovers,
+            DonationState.Pending
         );
     }
 
-    function approveDonation(uint _donationId) onlyRole(MANAGER_ROLE) external {
-        approvals[_donationId]++;
-        if(approvals[_donationId] > 2 * managers.length / 3) {
-            registerDonation(pendingDonations[_donationId]);
+    error ManagerAlreadyApproved();
+
+    function approveFundRaising(uint _donationId) onlyRole(MANAGER_ROLE) external {
+        if(approvals[_donationId].managersApproved[msg.sender])
+            revert ManagerAlreadyApproved();
+
+        approvals[_donationId].managerApprovals++;
+        approvals[_donationId].managersApproved[msg.sender] = true;
+        if(approvals[_donationId].managerApprovals > 2 * managers.length / 3) {
+            donations[donationIndex++] = pendingDonations[_donationId];
             delete pendingDonations[_donationId];
         }
     }
 
-    // должна производиться через 4. access control, кто может добавлять/удалять заявки (голосовалка для менеджеров + админские полномочия)   
-    function registerDonation(Donation storage _donation) internal {
-        donations[donationIndex++] = _donation; //Donation(_donation.totalNeeded, 0, _donation.tokenAddress);
+    error WithdrawerAlreadyApproved();
+    error TransferredLessThanNeeded();
+    error NotWithdrawer();
+
+    function approveWithdrawal(uint _donationId) external {
+        Donation storage donation = donations[_donationId];
+        if(donation.totalTransferred < donation.totalNeeded)
+            revert TransferredLessThanNeeded();
+        if(approvals[_donationId].withdrawersApproved[msg.sender])
+            revert WithdrawerAlreadyApproved();
+
+        bool isWithdrawer = false;
+        for (uint index = 0; index < donation.withdrawalApprovers.length; index++) {
+            if(donation.withdrawalApprovers[index] == msg.sender) {
+                isWithdrawer = true;
+                break;
+            }
+        }
+
+        if(!isWithdrawer)
+            revert NotWithdrawer();
+
+        approvals[_donationId].withdrawalApprovals++;
+        approvals[_donationId].withdrawersApproved[msg.sender] = true;
+
+        // 2/3 of approvers at least required to withdraw funds
+        if(approvals[_donationId].withdrawalApprovals > 2 * donation.withdrawalApprovers.length / 3) {
+            donation.withdrawalApproved = true;
+        }
     }
+
+    // должна производиться через 4. access control, кто может добавлять/удалять заявки (голосовалка для менеджеров + админские полномочия)   
+    
 
     receive() external payable {}
 }
