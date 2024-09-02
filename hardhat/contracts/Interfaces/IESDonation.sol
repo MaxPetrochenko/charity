@@ -5,5 +5,5 @@ import "../utils/Enums.sol";
 import "../utils/Structs.sol";
 
 interface IESDonation {
-    function donate(address tokenAddress, uint amount) external payable;
+    function foo(address tokenAddress, uint amount) external payable;
 }

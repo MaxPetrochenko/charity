@@ -30,7 +30,7 @@ import "./Common/Transferer.sol";
     uint totalNeeded;
     uint totalTransferred;
     address tokenAddress;
-    
+    address withdrawalAdress;
 }
 
 contract ESDonation is Transferer, AccessControl {
@@ -63,17 +63,34 @@ contract ESDonation is Transferer, AccessControl {
         }
     }
 
+    event FundRaised(uint donationId, uint totalTransferred);
 
-    function foo(address tokenAddress, uint amount) external payable {
-        assert(amount > 0);
+    function donate(uint _donationId, address _tokenAddress, uint _amount) external payable {
+        Donation storage donation = donations[_donationId];
+        require(donation.totalNeeded > 0);
+        // TODO: v2 - implement autoswap for user (with confirmation) and remove next line
+        require(donation.tokenAddress == _tokenAddress); 
+        transferERC20TokenOrETH(_tokenAddress, address(this), _amount);
+        // TODO: send nft for donation
+        donation.totalTransferred += _amount;
+        if(donation.totalTransferred >= donation.totalNeeded) {
+            emit FundRaised(_donationId, donation.totalTransferred);
+        }
     }
 
-    function donate(address tokenAddress, address to, uint amount) external payable {
-        transferERC20TokenOrETH(tokenAddress, to, amount);
+    function withdrawFundrasing() external {
+        // 1. managers approval
+        // 2. user(s) approval
+        // 3. withdraw to withdrawAddress
     }
 
-    function registerFundrasing(address _tokenAddress, uint _totalNeeded) external {
-        pendingDonations[pendingIndex++] = Donation(_totalNeeded, 0, _tokenAddress);
+    function registerFundrasing(Donation calldata _donation) external {
+        pendingDonations[pendingIndex++] = Donation(
+            _donation.totalNeeded,
+            0, 
+            _donation.tokenAddress, 
+            _donation.withdrawalAdress
+        );
     }
 
     function approveDonation(uint _donationId) onlyRole(MANAGER_ROLE) external {
