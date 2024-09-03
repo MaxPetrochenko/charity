@@ -16,10 +16,10 @@ import "./Common/Transferer.sol";
 /*сюда накинуть голосовалку и когда можно забирать из контракта
 контракт заявки (ESDonation):
 1. собирать донатную полоску (прогресс) в тех токенах, 
-    в которых был запрос (v2 - предлагать юзерам любой токен, который свапается/бриджится)
-2. организовать голосовалку 
+    в которых был запрос (v2 - предлагать юзерам любой токен, который свапается/бриджится) +
+2. организовать голосовалку +-
     2.1 голосовалка:
-    2.1.1 участники подтверждают вывод (в транзакции подверждается адрес вывода)
+    2.1.1 участники подтверждают вывод (в транзакции подверждается адрес вывода) +
     2.1.2 участники голосуют за смену адреса вывода
 3. state заявок, их прогресс
 4. access control, кто может добавлять/удалять заявки (голосовалка для менеджеров + админские полномочия)     
@@ -43,17 +43,19 @@ import "./Common/Transferer.sol";
     address[] withdrawalApprovers;
     DonationState state;
 }
+
+
 //TODO
 //разобраться с аппрувами (аппрув заявки, аппрув виздро, ручная  отправка не нужна, а значит и не нужны другие аппрувы. стейт пока оставим)
 //delete pendingDonations
-struct QApproval {
+struct Approval {
     uint managerApprovals;
     uint withdrawalApprovals;
     mapping(address => bool) managersApproved;
     mapping(address => bool) withdrawersApproved;
 }
 
-struct Approval {
+struct SSApproval {
     uint approvals;
     mapping(address => bool) approved;
 }
@@ -64,10 +66,8 @@ contract ESDonation is Transferer, AccessControl {
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     uint donationIndex = 0;
     mapping(uint => Donation) donations;
-    mapping(uint => QApproval) approvals;
+    mapping(uint => Approval) approvals;
 
-    mapping(uint => Approval) donationApproved;
-    
     address[] managers;
 
     modifier onlyVoted(uint _donationId) {
@@ -106,6 +106,7 @@ contract ESDonation is Transferer, AccessControl {
         // TODO: send nft for donation
         donation.totalTransferred += _amount;
         if(donation.totalTransferred >= donation.totalNeeded) {
+            donation.state = DonationState.Complete;
             emit FundRaised(_donationId, donation.totalTransferred);
         }
     }
@@ -116,39 +117,60 @@ contract ESDonation is Transferer, AccessControl {
         // 3. withdraw to withdrawAddress
     }
 
-    function registerFundrasing(Donation calldata _donation) external {
+    function registerFundrasing(uint totalNeeded, address tokenAddress, address withdrawalAddress, address[] calldata withdrawalApprovers) external {
         donations[donationIndex++] = Donation(
-            _donation.totalNeeded,
+            totalNeeded,
             0, 
-            _donation.tokenAddress, 
-            _donation.withdrawalAddress,
-            _donation.withdrawalApprovers,
+            tokenAddress, 
+            withdrawalAddress,
+            withdrawalApprovers,
             DonationState.Pending
         );
     }
 
     error ManagerAlreadyApproved();
+    error PendingStateRequired();
 
-    function approveFundRaising(uint _donationId) onlyRole(MANAGER_ROLE) external {
+    function voteForFundRaising(uint _donationId, bool isApproved) onlyRole(MANAGER_ROLE) external {
+        Donation storage donation = donations[_donationId];
+
+        if(donation.state != DonationState.Pending)
+            revert PendingStateRequired();
+
         if(approvals[_donationId].managersApproved[msg.sender])
             revert ManagerAlreadyApproved();
+        
+        (bool result, uint votes) = voteForFund(_donationId, isApproved);
 
-        approvals[_donationId].managerApprovals++;
+        // if(approvals[_donationId].managersApproved[msg.sender])
+        //     revert ManagerAlreadyApproved();
         approvals[_donationId].managersApproved[msg.sender] = true;
+        approvals[_donationId].managerApprovals++;
+
+        // approvals[_donationId].managerApprovals++;
+        // approvals[_donationId].managersApproved[msg.sender] = true;
         if(approvals[_donationId].managerApprovals > 2 * managers.length / 3) {
-            donations[donationIndex++] = pendingDonations[_donationId];
-            delete pendingDonations[_donationId];
+            donation.state = DonationState.ApprovedByManagers;
         }
+    }
+
+    function voteForFund(uint _donationId, bool isApproved) internal returns(bool, uint) {
+        
     }
 
     error WithdrawerAlreadyApproved();
     error TransferredLessThanNeeded();
     error NotWithdrawer();
+    error ManagersNotApproved();
 
     function approveWithdrawal(uint _donationId) external {
         Donation storage donation = donations[_donationId];
+        Approval storage approval = approvals[_donationId];
         if(donation.totalTransferred < donation.totalNeeded)
             revert TransferredLessThanNeeded();
+        if(donation.state != DonationState.ApprovedByManagers) {
+            revert ManagersNotApproved();
+        }
         if(approvals[_donationId].withdrawersApproved[msg.sender])
             revert WithdrawerAlreadyApproved();
 
@@ -163,12 +185,18 @@ contract ESDonation is Transferer, AccessControl {
         if(!isWithdrawer)
             revert NotWithdrawer();
 
-        approvals[_donationId].withdrawalApprovals++;
-        approvals[_donationId].withdrawersApproved[msg.sender] = true;
+        approval.withdrawersApproved[msg.sender] = true;
+        approval.withdrawalApprovals++;
+
+        // approvals[_donationId].withdrawalApprovals++;
+        // approvals[_donationId].withdrawersApproved[msg.sender] = true;
 
         // 2/3 of approvers at least required to withdraw funds
-        if(approvals[_donationId].withdrawalApprovals > 2 * donation.withdrawalApprovers.length / 3) {
-            donation.withdrawalApproved = true;
+        if(approval.withdrawalApprovals > 2 * donation.withdrawalApprovers.length / 3) {
+            donation.state = DonationState.ApprovedByWithdrawers;
+            //transfer to withdrawalAddress
+            //or use FROM
+            transferERC20TokenOrETH(donation.tokenAddress, donation.withdrawalAddress, donation.totalTransferred);
         }
     }
 
