@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED 
 pragma solidity ^0.8.24;
 
-import "../Interfaces/IESRewardPool.sol";
+import "../Interfaces/IRewardPool.sol";
 import "../utils/Enums.sol";
 import "../utils/Structs.sol";
 
@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 // proxy + implementation?
 
-contract ESRewardPoolV1 is IESRewardPool, Ownable {
+contract RewardPoolV1 is IRewardPool, Ownable {
 
     mapping(address => uint) currentFees;
     mapping(address => RewardData) amountsTransferred;

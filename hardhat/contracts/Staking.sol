@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/utils/Arrays.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "./Interfaces/IESStaking.sol";
-import "./Interfaces/IESRewardPool.sol";
-import "./ESStakingNFT.sol";
+import "./Interfaces/IStaking.sol";
+import "./Interfaces/IRewardPool.sol";
+import "./StakingNFT.sol";
 import "./utils/Structs.sol";
 
-contract ESStaking is IESStaking, Ownable, ReentrancyGuard {
+contract Staking is IStaking, Ownable, ReentrancyGuard {
     using Math for uint;
     using Address for address;
     using Arrays for StakeBalance[];
@@ -20,8 +20,8 @@ contract ESStaking is IESStaking, Ownable, ReentrancyGuard {
     string constant MINT_NFT = "createNFT(address)";
     uint constant rewardsIn = 1 minutes;
 
-    ESStakingNFT nft;
-    IESRewardPool pool;
+    StakingNFT nft;
+    IRewardPool pool;
 
 
     mapping(address => mapping(address => StakeBalance[])) balances; //user->token->values
