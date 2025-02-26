@@ -10,6 +10,7 @@ import "./Interfaces/IStaking.sol";
 import "./Interfaces/IRewardPool.sol";
 import "./StakingNFT.sol";
 import "./utils/Structs.sol";
+import "hardhat/console.sol";
 
 contract Staking is IStaking, Ownable, ReentrancyGuard {
     using Math for uint;
@@ -29,8 +30,9 @@ contract Staking is IStaking, Ownable, ReentrancyGuard {
     //mapping()
 
     constructor(address _pool) Ownable(msg.sender) {
-        pool = IESRewardPool(_pool);
-        nft = new ESStakingNFT();
+        pool = IRewardPool(_pool);
+        nft = new StakingNFT();
+        console.log('Staking contract created');
     }
 
     function stake(address sender, address tokenAddress, uint amount) nonReentrant external {
