@@ -67,7 +67,7 @@ contract FundraisingV1 is Transferer, AccessControl {
     mapping(uint => Donation) public donations;
     mapping(uint => Approval) public approvals;
 
-    address[] managers;
+    address[] public managers;
 
     StakingNFT public nft;
 
@@ -82,7 +82,7 @@ contract FundraisingV1 is Transferer, AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
         uint length = _managers.length;
-        for (uint256 index = 0; index < length; index++) {
+        for(uint index = 0; index < length; index++) {
             managers.push(_managers[index]);
             _grantRole(MANAGER_ROLE, managers[index]);
         }
@@ -90,11 +90,30 @@ contract FundraisingV1 is Transferer, AccessControl {
     }
 
     // settings
+    function managersCount() public view returns(uint) {
+        return managers.length;
+    }
+
     function addManagers(address[] memory _managers) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        uint length = _managers.length;
-        for (uint256 index = 0; index < length; index++) {
-            grantRole(MANAGER_ROLE, _managers[index]);
+        for(uint index = 0; index < _managers.length; index++) {
             managers.push(_managers[index]);
+            _grantRole(MANAGER_ROLE, managers[index]);
+        }
+    }
+
+    event ManagerRemoved(address removedManager);
+    function removeManagers(address[] memory _managers) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for(uint i = 0; i < _managers.length; i++) {
+            for(uint j = 0; j < managers.length; j++) {
+                if(_managers[i] == managers[j]) {
+                    delete managers[j];
+                    emit ManagerRemoved(_managers[i]);
+                    for(uint k = j; k < managers.length - 1; k++)
+                        managers[k] = managers[k + 1];
+                    managers.pop();
+                    break;
+                }
+            }
         }
     }
     // end of settings
@@ -107,16 +126,13 @@ contract FundraisingV1 is Transferer, AccessControl {
         require(donation.state == FundraisingState.ApprovedByManagers);
         // TODO: v2 - implement autoswap for user (with confirmation) and remove next line
         require(donation.tokenAddress == _tokenAddress);
-        unsafeApproveERC20Token(_tokenAddress, address(this), _amount);
         transferERC20TokenFrom(_tokenAddress, msg.sender, address(this), _amount);
-        // TODO: send nft for donation
-
         donation.totalTransferred += _amount;
-        if(donation.totalTransferred >= donation.totalNeeded) {
+        nft.createNFT(msg.sender);
+        if(donation.totalTransferred >= donation.totalNeeded)
             donation.state = FundraisingState.Complete;
-            nft.createNFT(msg.sender);
-            emit Donated(_donationId, donation.totalTransferred);
-        }
+
+        emit Donated(_donationId, _amount);
     }
 
     // fundraising setup
