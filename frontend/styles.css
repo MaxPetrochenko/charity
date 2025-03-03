@@ -1,0 +1,119 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+  }
+  
+  h1, h2, h3 {
+    color: #333;
+  }
+  
+  /* Auth Container */
+  .auth-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .auth-container form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .auth-container input,
+  .auth-container button {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .auth-container button {
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .auth-container button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Fundraising Form */
+  .fundraising-form {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .fundraising-form form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .fundraising-form input,
+  .fundraising-form textarea,
+  .fundraising-form button {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .fundraising-form button {
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .fundraising-form button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Fundraiser List */
+  .fundraisers-list {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .fundraiser-item {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .fundraiser-item:last-child {
+    border-bottom: none;
+  }
+  
+  .fundraiser-item h3 {
+    color: #4CAF50;
+  }
+  
+  .fundraiser-item button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .fundraiser-item button:hover {
+    background-color: #45a049;
+  }
+  
