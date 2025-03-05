@@ -1,13 +1,14 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-//
-//   </div>
 export const LoginForm: React.FC = () => {
   // Step 1: Set up state variables for each input field
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const navigate = useNavigate();
 
   // Step 2: Handle input changes
   const handleChange = (
@@ -21,9 +22,20 @@ export const LoginForm: React.FC = () => {
   };
 
   // Step 3: Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevents the page from refreshing on form submit
     console.log("Form submitted:", formData);
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_API_URL! + "api/auth/login",
+        formData,
+        { withCredentials: true }
+      );
+      console.log(response.data);
+      navigate("/");
+    } catch (error) {
+      console.log("Error: ", error);
+    }
     // You can now send the formData to an API or process it further
   };
   return (
@@ -56,7 +68,7 @@ const LoginPage = () => {
       <h2>Login to Your Account</h2>
       <LoginForm />
       <p>
-        Don't have an account? <a href="register.html">Register here</a>
+        Don't have an account? <a href="/register">Register here</a>
       </p>
     </div>
   );

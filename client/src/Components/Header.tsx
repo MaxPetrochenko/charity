@@ -5,10 +5,10 @@ const Header = () => (
     <nav>
       <ul>
         <li>
-          <Link to="/login">Login</Link>
+          <Link to="/home">Home</Link>
         </li>
         <li>
-          <Link to="/createfund">Create Fundraising</Link>
+          <Link to="/login">Login</Link>
         </li>
       </ul>
     </nav>

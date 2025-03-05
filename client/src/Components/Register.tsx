@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import ProtectedRoute from "./ProtectedRoute";
-
-export const CreateFundraisingForm: React.FC = () => {
+import axios from "axios";
+//
+//   </div>
+export const RegisterForm: React.FC = () => {
   // Step 1: Set up state variables for each input field
   const [formData, setFormData] = useState({
-    name: "",
-    goal: "",
-    description: "",
+    email: "",
+    password: "",
   });
 
   // Step 2: Handle input changes
@@ -21,50 +21,54 @@ export const CreateFundraisingForm: React.FC = () => {
   };
 
   // Step 3: Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevents the page from refreshing on form submit
     console.log("Form submitted:", formData);
+    try {
+      const response = await axios.post(
+        process.env.REACT_APP_API_URL! +
+          process.env.REACT_APP_API_AUTH_PATH! +
+          "register",
+        formData,
+        { withCredentials: true }
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log("Error: ", error);
+    }
+
     // You can now send the formData to an API or process it further
   };
   return (
     <form onSubmit={handleSubmit}>
       {/* Name input */}
       <input
-        type="text"
-        name="title"
-        value={formData.name} // Binding the input to state
+        type="email"
+        name="email"
+        value={formData.email} // Binding the input to state
         onChange={handleChange} // Updating the state when the user types
-        placeholder="Fundraising Title"
-        required
-      />
-      <textarea
-        name="description"
-        value={formData.description}
-        onChange={handleChange}
+        placeholder="Email"
         required
       />
       <input
-        type="number"
-        name="goal"
-        placeholder="Fundraising Goal"
-        value={formData.goal}
+        type="password"
+        name="password"
+        placeholder="Password"
+        value={formData.password}
         onChange={handleChange}
         required
       />
-
       <button type="submit">Submit</button>
     </form>
   );
 };
 
-const CreateFundraisingPage = () => {
+const RegisterPage = () => {
   return (
-    <ProtectedRoute>
-      <div className="fundraising-form">
-        <h2>Create New Fundraising</h2>
-        <CreateFundraisingForm />
-      </div>
-    </ProtectedRoute>
+    <div className="auth-container">
+      <h2>Register an account</h2>
+      <RegisterForm />
+    </div>
   );
 };
-export default CreateFundraisingPage;
+export default RegisterPage;
