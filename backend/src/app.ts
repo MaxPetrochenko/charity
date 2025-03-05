@@ -5,8 +5,7 @@ import authRoutes from './routes/authRoutes';
 import fundraisingRoutes from './routes/fundraisingRoutes';
 import { protect } from './middleware/authMiddleware';
 
-dotenv.config();
-
+dotenv.config({ path: '.env' });
 const app = express();
 app.use(express.json());
 

@@ -17,15 +17,16 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
 const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
+    const req_ = req;
+    if (req_.headers.authorization && req_.headers.authorization.startsWith('Bearer')) {
+        token = req_.headers.authorization.split(' ')[1];
     }
     if (!token) {
         return res.status(401).json({ message: 'Not authorized, no token' });
     }
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        req.user = yield User_1.default.findById(decoded.userId).select('-password');
+        req_.user = yield User_1.default.findById(decoded.userId).select('-password');
         next();
     }
     catch (error) {

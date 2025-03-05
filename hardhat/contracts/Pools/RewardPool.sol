@@ -29,13 +29,19 @@ contract RewardPoolV1 is IRewardPool, Ownable {
     }
 
 
-    function addRewardToPool(RewardData memory rewardData) external {
+    function addRewardToPool(RewardData calldata _rewardData) external {
+        RewardData memory rewardData = RewardData({
+            amount: _rewardData.amount,
+            hasLockPeriod: _rewardData.hasLockPeriod,
+            lockPeriod: _rewardData.lockPeriod,
+            tokenAddress: _rewardData.tokenAddress,
+            unlocksAt: _rewardData.hasLockPeriod? timeUnits[_rewardData.lockPeriod] : 0
+        });
         require(IERC20(rewardData.tokenAddress).balanceOf(msg.sender) >= rewardData.amount);
-        //require(IERC20(tokenAddress).allowance(msg.sender, address(this)) >= rewardData.amount);
+        require(IERC20(rewardData.tokenAddress).allowance(msg.sender, address(this)) >= rewardData.amount);
         IERC20(rewardData.tokenAddress).transferFrom(msg.sender, address(this), rewardData.amount);
         currentFees[rewardData.tokenAddress] = defaultFee;
-
-        rewardData.unlocksAt = 0;
+        
         if(rewardData.hasLockPeriod) {
             rewardData.unlocksAt = timeUnits[rewardData.lockPeriod];
         }

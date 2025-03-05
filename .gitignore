@@ -1,2 +1,7 @@
 idea.txt
 node_modules/
+.env
+backend/dist/*
+backend/dist/app.js
+backend/dist/middleware/authMiddleware.js
+backend/dist/routes/fundraisingRoutes.js
