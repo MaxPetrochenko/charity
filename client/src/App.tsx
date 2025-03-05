@@ -8,6 +8,7 @@ import CreateFundraisingPage from "./Components/CreateFundraising";
 import Dashboard from "./Components/Dashboard";
 import { AuthProvider } from "./Context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import DefaultProtectedRouteJSX from "./Components/DefaultRoute";
 
 const App: React.FC = () => {
   return (
@@ -17,26 +18,20 @@ const App: React.FC = () => {
           <a href="/">CLICK HERE</a>
           <Routes>
             <Route path="/login" element={LoginPage()}></Route>
-            <Route path="/createfund" element={CreateFundraisingPage()}></Route>
-            <Route path="/home" element={MainPage()}></Route>
+            <Route
+              path="/createfund"
+              element={
+                <DefaultProtectedRouteJSX children={CreateFundraisingPage()} />
+              }
+            />
             <Route path="/register" element={RegisterPage()}></Route>
             <Route
               path="/"
-              element={
-                <ProtectedRoute
-                  fallback={
-                    <div>
-                      <Header />
-                      <MainPage />
-                    </div>
-                  }
-                >
-                  <div>
-                    <Dashboard />
-                    <MainPage />
-                  </div>
-                </ProtectedRoute>
-              }
+              element={<DefaultProtectedRouteJSX children={MainPage()} />}
+            />
+            <Route
+              path="/home"
+              element={<DefaultProtectedRouteJSX children={MainPage()} />}
             />
           </Routes>
         </BrowserRouter>
