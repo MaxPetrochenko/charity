@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 export const LoginForm: React.FC = () => {
   // Step 1: Set up state variables for each input field
@@ -21,6 +22,7 @@ export const LoginForm: React.FC = () => {
     });
   };
 
+  const { login } = useAuth();
   // Step 3: Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevents the page from refreshing on form submit
@@ -32,6 +34,7 @@ export const LoginForm: React.FC = () => {
         { withCredentials: true }
       );
       console.log(response.data);
+      await login();
       navigate("/");
     } catch (error) {
       console.log("Error: ", error);
