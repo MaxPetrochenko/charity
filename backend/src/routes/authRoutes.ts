@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User";
 
 const router = express.Router();
+const JWT_SECRET = "myrandomjwtsecret";
 
 // Register new user
 router.post("/register", async (req: Request, res: Response) => {
@@ -37,7 +38,7 @@ router.post("/login", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
       expiresIn: "1h",
     });
 
@@ -48,7 +49,7 @@ router.post("/login", async (req: Request, res: Response) => {
       maxAge: 3600000, // 1 hour
     });
 
-    return res.json({ message: "Logged in successfully" });
+    return res.json(user);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

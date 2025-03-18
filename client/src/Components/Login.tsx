@@ -34,7 +34,7 @@ export const LoginForm: React.FC = () => {
         { withCredentials: true }
       );
       console.log(response.data);
-      await login();
+      await login(response.data);
       navigate("/");
     } catch (error) {
       console.log("Error: ", error);

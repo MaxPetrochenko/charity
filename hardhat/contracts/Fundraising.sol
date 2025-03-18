@@ -71,8 +71,8 @@ contract FundraisingV1 is Transferer, AccessControl {
 
     StakingNFT public nft;
 
-    modifier onlyVoted(uint _donationId) {
-        Donation storage donation = donations[_donationId];
+    modifier onlyVoted(uint _fundraisingId) {
+        Donation storage donation = donations[_fundraisingId];
         _;
     }
 
@@ -120,8 +120,8 @@ contract FundraisingV1 is Transferer, AccessControl {
 
     event Donated(uint donationId, uint totalTransferred);
 
-    function donate(uint _donationId, address _tokenAddress, uint _amount) external payable {
-        Donation storage donation = donations[_donationId];
+    function donate(uint _fundraisingId, address _tokenAddress, uint _amount) external payable {
+        Donation storage donation = donations[_fundraisingId];
         require(donation.totalNeeded > 0);
         require(donation.state == FundraisingState.ApprovedByManagers);
         // TODO: v2 - implement autoswap for user (with confirmation) and remove next line
@@ -132,7 +132,7 @@ contract FundraisingV1 is Transferer, AccessControl {
         if(donation.totalTransferred >= donation.totalNeeded)
             donation.state = FundraisingState.Complete;
 
-        emit Donated(_donationId, _amount);
+        emit Donated(_fundraisingId, _amount);
     }
 
     // fundraising setup
@@ -144,7 +144,7 @@ contract FundraisingV1 is Transferer, AccessControl {
         address _tokenAddress, 
         address _withdrawalAddress, 
         address[] calldata _withdrawalApprovers
-    ) external {
+    ) public returns(uint) {
         Donation memory donation;
         donation.totalNeeded = _totalNeeded;
         donation.totalTransferred = 0;
@@ -153,13 +153,14 @@ contract FundraisingV1 is Transferer, AccessControl {
         donation.withdrawalApprovers = _withdrawalApprovers;
         donations[fundraisingId++] = donation;
         emit FundRaised(fundraisingId - 1);
+        return fundraisingId - 1;
     }
 
     error ManagerAlreadyVoted();
     error PendingStateRequired();
 
-    function _calculateDonationState(uint _donationId) internal {
-        Approval storage approval = approvals[_donationId];
+    function _calculateDonationState(uint _fundraisingId) internal {
+        Approval storage approval = approvals[_fundraisingId];
         uint notVoted = 0;
         uint voteForCount = 0;
         uint voteAgainstCount = 0;
@@ -180,7 +181,7 @@ contract FundraisingV1 is Transferer, AccessControl {
                 if(notVoted + voteForCount >= 2 * managers.length / 3) return;
             }
             console.log('Dismissed');
-            donations[_donationId].state = FundraisingState.Dismissed;
+            donations[_fundraisingId].state = FundraisingState.Dismissed;
             
         }
         else {
@@ -189,24 +190,26 @@ contract FundraisingV1 is Transferer, AccessControl {
                 if(notVoted + voteAgainstCount > 1 * managers.length / 3) return;
             }
             console.log('ApprovedByManagers');
-            donations[_donationId].state = FundraisingState.ApprovedByManagers;
+            donations[_fundraisingId].state = FundraisingState.ApprovedByManagers;
         }
     }
 
-    function approveFundraising(uint _donationId, bool isApproved) onlyRole(MANAGER_ROLE) external {
-        Donation storage donation = donations[_donationId];
+    function approveFundraising(uint _fundraisingId, bool isApproved) onlyRole(MANAGER_ROLE) 
+    public returns(FundraisingState) {
+        Donation storage donation = donations[_fundraisingId];
 
         if(donation.state != FundraisingState.Pending)
             revert PendingStateRequired();
 
-        if(approvals[_donationId].managersVote[msg.sender].hasVoted) 
+        if(approvals[_fundraisingId].managersVote[msg.sender].hasVoted) 
             revert ManagerAlreadyVoted();
 
-        approvals[_donationId].managersVote[msg.sender].hasVoted = true;
-        approvals[_donationId].managersVote[msg.sender].voteResult = isApproved;
-        approvals[_donationId].managerApprovals++;
+        approvals[_fundraisingId].managersVote[msg.sender].hasVoted = true;
+        approvals[_fundraisingId].managersVote[msg.sender].voteResult = isApproved;
+        approvals[_fundraisingId].managerApprovals++;
 
-        _calculateDonationState(_donationId);
+        _calculateDonationState(_fundraisingId);
+        return donation.state;
     }
 
     // end fundraising setup
@@ -217,14 +220,14 @@ contract FundraisingV1 is Transferer, AccessControl {
     error NotWithdrawer();
     error NotComplete();
 
-    function approveWithdrawal(uint _donationId) external {
-        Donation storage donation = donations[_donationId];
-        Approval storage approval = approvals[_donationId];
+    function approveWithdrawal(uint _fundraisingId) public returns(FundraisingState) {
+        Donation storage donation = donations[_fundraisingId];
+        Approval storage approval = approvals[_fundraisingId];
 
         if(donation.state < FundraisingState.Complete)
             revert NotComplete();
 
-        if(approvals[_donationId].withdrawersApproved[msg.sender])
+        if(approvals[_fundraisingId].withdrawersApproved[msg.sender])
             revert WithdrawerAlreadyApproved();
 
         bool isWithdrawer = false;
@@ -245,10 +248,11 @@ contract FundraisingV1 is Transferer, AccessControl {
         if(approval.withdrawalApprovals > 2 * donation.withdrawalApprovers.length / 3) 
             donation.state = FundraisingState.ApprovedByWithdrawers;
         
+        return donation.state;
     }
 
-    function withdrawFundraising(uint _donationId) external {
-        Donation storage donation = donations[_donationId];
+    function withdrawFundraising(uint _fundraisingId) public returns(FundraisingState) {
+        Donation storage donation = donations[_fundraisingId];
         bool isWithdrawer = false;
         for(uint i = 0; i < donation.withdrawalApprovers.length; i++)
             if(msg.sender == donation.withdrawalApprovers[i]) {
@@ -260,6 +264,7 @@ contract FundraisingV1 is Transferer, AccessControl {
         if(donation.state == FundraisingState.ApprovedByWithdrawers) 
             transferERC20TokenOrETH(donation.tokenAddress, donation.withdrawalAddress, donation.totalTransferred);
         donation.state = FundraisingState.Withdrawn;
+        return donation.state;
     }
     // end of withdrawal
 

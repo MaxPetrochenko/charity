@@ -30,7 +30,8 @@ app.use((req, res, next) => {
 });
 
 mongoose
-  .connect(process.env.MONGO_URI!)
+  //.connect(process.env.MONGO_URI!)
+  .connect('mongodb://127.0.0.1:27017')
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
@@ -39,7 +40,7 @@ app.use("/api/fundraising", protect, fundraisingRoutes);
 
 app.get("/api/protected", (req, res) => {
   const token = req.cookies.token; // Get token from HTTP-only cookie
-  const JWT_SECRET = process.env.JWT_SECRET!;
+  const JWT_SECRET = 'myrandomjwtsecret';
   if (!token) return res.status(401).json({ message: "Unauthorized" });
 
   try {
