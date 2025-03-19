@@ -1,0 +1,1 @@
+{"root":["./src/app.ts","./src/middleware/authmiddleware.ts","./src/models/fundraising.ts","./src/models/user.ts","./src/routes/authroutes.ts","./src/routes/fundraisingroutes.ts","./src/types/env.d.ts"],"version":"5.8.2"}

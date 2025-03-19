@@ -8,5 +8,10 @@
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@types/mocha": "^10.0.10",
     "ethers": "^6.13.5"
+  },
+  "scripts": {
+    "hh": "npx hardhat node",
+    "tchain": "npx hardhat typechain",
+    "deploy": "npx hardhat ignition deploy ignition/modules/Deploy.ts"
   }
 }

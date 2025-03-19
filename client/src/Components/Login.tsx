@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 
@@ -28,11 +28,7 @@ export const LoginForm: React.FC = () => {
     e.preventDefault(); // Prevents the page from refreshing on form submit
     console.log("Form submitted:", formData);
     try {
-      const response = await axios.post(
-        process.env.REACT_APP_API_URL! + "api/auth/login",
-        formData,
-        { withCredentials: true }
-      );
+      const response = await axiosInstance.post("/api/auth/login", formData);
       console.log(response.data);
       await login(response.data);
       navigate("/");

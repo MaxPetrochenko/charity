@@ -1,9 +1,9 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IFundraising extends Document {
   title: string;
   description: string;
-  goal: number;
+  goal: string;
   creator: mongoose.Types.ObjectId;
   approved: boolean;
 }
@@ -18,12 +18,12 @@ const fundraisingSchema: Schema<IFundraising> = new Schema({
     required: true,
   },
   goal: {
-    type: Number,
+    type: String,
     required: true,
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   approved: {
@@ -32,6 +32,9 @@ const fundraisingSchema: Schema<IFundraising> = new Schema({
   },
 });
 
-const Fundraising = mongoose.model<IFundraising>('Fundraising', fundraisingSchema);
+const Fundraising = mongoose.model<IFundraising>(
+  "Fundraising",
+  fundraisingSchema
+);
 
 export default Fundraising;

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
+import { useNavigate } from "react-router-dom";
 //
 //   </div>
 export const RegisterForm: React.FC = () => {
@@ -19,20 +20,18 @@ export const RegisterForm: React.FC = () => {
       [name]: value, // update the specific field
     });
   };
-
+  const navigate = useNavigate();
   // Step 3: Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevents the page from refreshing on form submit
     console.log("Form submitted:", formData);
     try {
-      const response = await axios.post(
-        process.env.REACT_APP_API_URL! +
-          process.env.REACT_APP_API_AUTH_PATH! +
-          "register",
-        formData,
-        { withCredentials: true }
+      const response = await axiosInstance.post(
+        process.env.REACT_APP_API_AUTH_PATH! + "/register",
+        formData
       );
       console.log(response.data);
+      navigate("/login");
     } catch (error) {
       console.log("Error: ", error);
     }

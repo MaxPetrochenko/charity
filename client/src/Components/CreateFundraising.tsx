@@ -4,7 +4,8 @@ import { ethers } from "ethers";
 import { BrowserProvider, parseUnits } from "ethers";
 import FundraisingContract, { FundraisingV1 } from "../Contracts/Fundraising";
 import { FundraisingV1__factory } from "../typechain";
-import { title } from "process";
+import axiosInstance from "../utils/axiosInstance";
+
 declare global {
   interface Window {
     ethereum: any;
@@ -22,7 +23,13 @@ export const CreateFundraisingForm: React.FC = () => {
     isSigned: false,
     signer: {},
   });
-
+  const handleGoal = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    e.target.value = value.replace(/[^0-9]/g, "");
+    handleChange(e);
+  };
   // Step 2: Handle input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -38,7 +45,8 @@ export const CreateFundraisingForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevents the page from refreshing on form submit
     console.log("Form submitted:", formData);
-
+    const p = await axiosInstance.post("/api/fundraising/create", formData);
+    console.log(p.data);
     const fundraisingInstance = await FundraisingV1__factory.connect(
       process.env.REACT_APP_FUNDRAISING_ADDRESS!,
       signer
@@ -107,9 +115,9 @@ export const CreateFundraisingForm: React.FC = () => {
       <input
         type="text"
         name="goal"
-        placeholder="Fundraising Goal"
+        placeholder="Fundraising Goal (amount of ETH)"
         value={formData.goal}
-        onChange={handleChange}
+        onChange={handleGoal}
         required
       />
 

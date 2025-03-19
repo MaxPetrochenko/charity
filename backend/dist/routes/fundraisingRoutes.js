@@ -16,7 +16,7 @@ const express_1 = __importDefault(require("express"));
 const Fundraising_1 = __importDefault(require("../models/Fundraising"));
 const router = express_1.default.Router();
 // Create new fundraising
-router.post('/create', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/create", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { title, description, goal } = req.body;
     const userId = req.user.id; // From JWT token (middleware will check)
     try {
@@ -30,37 +30,42 @@ router.post('/create', (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(201).json(fundraising);
     }
     catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: "Server Error" });
     }
 }));
 // Approve a fundraising
-router.put('/approve/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put("/approve/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const { userId, role } = req.user; // From JWT token
-    if (role !== 'admin') {
-        return res.status(403).json({ message: 'Not authorized' });
+    if (role !== "admin") {
+        return res.status(403).json({ message: "Not authorized" });
     }
     try {
         const fundraising = yield Fundraising_1.default.findById(id);
         if (!fundraising) {
-            return res.status(404).json({ message: 'Fundraising not found' });
+            return res.status(404).json({ message: "Fundraising not found" });
         }
         fundraising.approved = true;
         yield fundraising.save();
         res.json(fundraising);
     }
     catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: "Server Error" });
     }
 }));
 // Get all approved fundraisers
-router.get('/approved', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/approved", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const fundraisers = yield Fundraising_1.default.find({ approved: true }).populate('creator');
+        console.log(req.body);
+        const { isApproved } = req.body;
+        const fundraisers = yield Fundraising_1.default.find({
+            approved: isApproved,
+        }).populate("creator");
         res.json(fundraisers);
+        console.log("APPROVED");
     }
     catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: "Server Error" });
     }
 }));
 exports.default = router;

@@ -16,41 +16,49 @@ const express_1 = __importDefault(require("express"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
 const router = express_1.default.Router();
+const JWT_SECRET = "myrandomjwtsecret";
 // Register new user
-router.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("REGISTER");
     const { email, password } = req.body;
     try {
         const userExists = yield User_1.default.findOne({ email });
         if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
+            return res.status(400).json({ message: "User already exists" });
         }
         const user = new User_1.default({ email, password });
         yield user.save();
-        res.status(201).json({ message: 'User created successfully' });
+        res.status(201).json({ message: "User created successfully" });
     }
     catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: "Server Error" });
     }
 }));
 // Login
-router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
         const user = yield User_1.default.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ message: "Invalid credentials" });
         }
         const isMatch = yield user.matchPassword(password);
         if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ message: "Invalid credentials" });
         }
-        const token = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET, {
-            expiresIn: '1h',
+        const token = jsonwebtoken_1.default.sign({ userId: user._id }, JWT_SECRET, {
+            expiresIn: "1h",
         });
-        res.json({ token });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // HTTPS only in production
+            sameSite: "strict", // Prevent CSRF attacks
+            maxAge: 3600000, // 1 hour
+        });
+        return res.json(user);
     }
     catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: "Server Error" });
     }
 }));
 exports.default = router;

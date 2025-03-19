@@ -31,7 +31,7 @@ app.use((req, res, next) => {
 
 mongoose
   //.connect(process.env.MONGO_URI!)
-  .connect('mongodb://127.0.0.1:27017')
+  .connect("mongodb://127.0.0.1:27017")
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
@@ -40,11 +40,11 @@ app.use("/api/fundraising", protect, fundraisingRoutes);
 
 app.get("/api/protected", (req, res) => {
   const token = req.cookies.token; // Get token from HTTP-only cookie
-  const JWT_SECRET = 'myrandomjwtsecret';
+  const JWT_SECRET = process.env.JWT_SECRET;
   if (!token) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET as jwt.Secret);
     res.json({ message: "You accessed a protected route!", user: decoded });
   } catch (error) {
     return res.status(403).json({ message: "Invalid token" });

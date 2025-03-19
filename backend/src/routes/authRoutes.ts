@@ -2,9 +2,10 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
+import dotenv from "dotenv";
 
 const router = express.Router();
-const JWT_SECRET = "myrandomjwtsecret";
+dotenv.config();
 
 // Register new user
 router.post("/register", async (req: Request, res: Response) => {
@@ -32,12 +33,11 @@ router.post("/login", async (req: Request, res: Response) => {
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-
+    const JWT_SECRET = process.env.JWT_SECRET! as jwt.Secret;
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
       expiresIn: "1h",
     });
@@ -48,10 +48,9 @@ router.post("/login", async (req: Request, res: Response) => {
       sameSite: "strict", // Prevent CSRF attacks
       maxAge: 3600000, // 1 hour
     });
-
     return res.json(user);
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: error });
   }
 });
 

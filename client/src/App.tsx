@@ -17,21 +17,32 @@ const App: React.FC = () => {
         <BrowserRouter>
           <a href="/">CLICK HERE</a>
           <Routes>
-            <Route path="/login" element={LoginPage()}></Route>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route
               path="/createfund"
               element={
-                <DefaultProtectedRouteJSX children={CreateFundraisingPage()} />
+                <DefaultProtectedRouteJSX>
+                  <CreateFundraisingPage />
+                </DefaultProtectedRouteJSX>
               }
             />
-            <Route path="/register" element={RegisterPage()}></Route>
             <Route
               path="/"
-              element={<DefaultProtectedRouteJSX children={MainPage()} />}
+              element={
+                <DefaultProtectedRouteJSX>
+                  <MainPage />
+                </DefaultProtectedRouteJSX>
+              }
             />
+
             <Route
               path="/home"
-              element={<DefaultProtectedRouteJSX children={MainPage()} />}
+              element={
+                <DefaultProtectedRouteJSX>
+                  <MainPage />
+                </DefaultProtectedRouteJSX>
+              }
             />
           </Routes>
         </BrowserRouter>

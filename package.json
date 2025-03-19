@@ -19,7 +19,7 @@
   },
   "scripts": {
     "dev": "ts-node backend/src/app.ts",
-    "build": "tsc backend",
+    "build": "tsc --project backend/tsconfig.json",
     "start": "node backend/dist/app.js"
   },
   "devDependencies": {

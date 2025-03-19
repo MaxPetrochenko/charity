@@ -16,7 +16,8 @@ interface IUser {
   role: string;
   _v: number;
 }
-enum UserRole {
+
+export enum UserRole {
   none = "none",
   user = "user",
   manager = "manager",
@@ -27,22 +28,30 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [role, setRole] = useState<UserRole>(UserRole.none);
+  const [role, setRole] = useState<UserRole>(UserRole.none); // Default to "none"
 
   const checkAuth = async () => {
     try {
-      await axios.get("http://localhost:5000/api/protected", {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/protected`,
+        {
+          withCredentials: true,
+        }
+      );
       setIsAuthenticated(true);
+      setRole(getKeyByValue(res.data.role));
     } catch {
       setIsAuthenticated(false);
+      setRole(UserRole.none);
     }
   };
-  const getKeyByValue = (value: string) => {
-    const index = Object.values(UserRole).indexOf(value as unknown as UserRole);
-    return Object.values(UserRole)[index];
+
+  const getKeyByValue = (value: string): UserRole => {
+    return Object.values(UserRole).includes(value as UserRole)
+      ? (value as UserRole)
+      : UserRole.none;
   };
+
   const login = async (user: IUser) => {
     await checkAuth(); // Update state after login
     setRole(getKeyByValue(user.role));
@@ -50,11 +59,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     await axios.post(
-      "http://localhost:5000/logout",
+      `${process.env.REACT_APP_API_URL}/logout`,
       {},
       { withCredentials: true }
     );
     setIsAuthenticated(false);
+    setRole(UserRole.none);
   };
 
   useEffect(() => {
@@ -70,4 +80,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext)!;
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

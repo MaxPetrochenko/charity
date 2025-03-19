@@ -1,6 +1,4 @@
 import { Link } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoute";
-import Header from "./Header";
 import { useAuth } from "../Context/AuthContext";
 const Dashboard = () => {
   const { logout } = useAuth();
