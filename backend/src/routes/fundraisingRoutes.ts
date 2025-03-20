@@ -3,6 +3,7 @@ import Fundraising from "../models/Fundraising";
 import User from "../models/User";
 import { IUser } from "../models/User";
 import { IUserRequest } from "../middleware/authMiddleware";
+import { FundraisingStatusEnum } from "../models/Fundraising";
 
 const router = express.Router();
 
@@ -54,9 +55,10 @@ router.put("/approve/:id", async (req: Request, res: Response) => {
 router.post("/approved", async (req: Request, res: Response) => {
   try {
     console.log(req.body);
-    const { isApproved } = req.body;
+    const { requestStatuses } = req.body;
+    const statuses = requestStatuses as FundraisingStatusEnum[];
     const fundraisers = await Fundraising.find({
-      approved: isApproved,
+      status: { $in: statuses },
     }).populate("creator");
     res.json(fundraisers);
     console.log("APPROVED");

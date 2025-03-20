@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
 import { FundraisingV1__factory } from "../typechain";
+import { FundraisingStatusEnum } from "../utils/enums";
 
 const MainPage = () => {
   const { role } = useAuth();
@@ -15,7 +16,7 @@ const MainPage = () => {
     if (signer) {
       fetchFundraisings(role);
     }
-  }, [signer]);
+  }, [signer, role]);
 
   const fetchFundraisings = async (userRole: UserRole) => {
     try {
@@ -24,19 +25,28 @@ const MainPage = () => {
         signer!
       );
 
-      let isApproved = false;
+      let requestStatuses: FundraisingStatusEnum[] = [];
       switch (role) {
         case UserRole.user:
-          isApproved = true;
+          requestStatuses.push(FundraisingStatusEnum.ApprovedByManagers);
           break;
         case UserRole.manager:
+          requestStatuses.push(FundraisingStatusEnum.Pending);
+          break;
         case UserRole.admin:
+          requestStatuses.push(
+            FundraisingStatusEnum.Pending,
+            FundraisingStatusEnum.ApprovedByManagers,
+            FundraisingStatusEnum.Dismissed
+          );
+          break;
         default:
+          requestStatuses.push(FundraisingStatusEnum.ApprovedByManagers);
           break;
       }
 
       const response = await axiosInstance.post("/api/fundraising/approved", {
-        isApproved,
+        requestStatuses,
       });
 
       setFundraisings(response.data);

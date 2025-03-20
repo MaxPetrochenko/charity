@@ -5,9 +5,16 @@ export interface IFundraising extends Document {
   description: string;
   goal: string;
   creator: mongoose.Types.ObjectId;
-  approved: boolean;
+  status: FundraisingStatusEnum;
 }
-
+export enum FundraisingStatusEnum {
+  Pending = "pending",
+  Dismissed = "dismissed",
+  ApprovedByManagers = "approvedByManagers",
+  Complete = "complete",
+  ApprovedByWithdrawers = "approvedByWithdrawers",
+  Withdrawn = "withdrawn",
+}
 const fundraisingSchema: Schema<IFundraising> = new Schema({
   title: {
     type: String,
@@ -26,9 +33,10 @@ const fundraisingSchema: Schema<IFundraising> = new Schema({
     ref: "User",
     required: true,
   },
-  approved: {
-    type: Boolean,
-    default: false,
+  status: {
+    type: String,
+    enum: Object.values(FundraisingStatusEnum),
+    default: FundraisingStatusEnum.Pending,
   },
 });
 
