@@ -13,12 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const Fundraising_1 = __importDefault(require("../models/Fundraising"));
+const Fundraising_1 = __importDefault(require("@shared/models/Fundraising"));
+const Fundraising_2 = require("@shared/models/Fundraising");
 const router = express_1.default.Router();
 // Create new fundraising
 router.post("/create", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { title, description, goal } = req.body;
     const userId = req.user.id; // From JWT token (middleware will check)
+    //res.json(userId);
     try {
         const fundraising = new Fundraising_1.default({
             title,
@@ -30,14 +32,14 @@ router.post("/create", (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(201).json(fundraising);
     }
     catch (error) {
-        res.status(500).json({ message: "Server Error" });
+        res.status(500).json(error);
     }
 }));
 // Approve a fundraising
 router.put("/approve/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const { userId, role } = req.user; // From JWT token
-    if (role !== "admin") {
+    if (role == "user") {
         return res.status(403).json({ message: "Not authorized" });
     }
     try {
@@ -45,7 +47,7 @@ router.put("/approve/:id", (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!fundraising) {
             return res.status(404).json({ message: "Fundraising not found" });
         }
-        fundraising.approved = true;
+        fundraising.status = Fundraising_2.FundraisingStatusEnum.Pending;
         yield fundraising.save();
         res.json(fundraising);
     }
@@ -57,9 +59,10 @@ router.put("/approve/:id", (req, res) => __awaiter(void 0, void 0, void 0, funct
 router.post("/approved", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(req.body);
-        const { isApproved } = req.body;
+        const { requestStatuses } = req.body;
+        const statuses = requestStatuses;
         const fundraisers = yield Fundraising_1.default.find({
-            approved: isApproved,
+            status: { $in: statuses },
         }).populate("creator");
         res.json(fundraisers);
         console.log("APPROVED");

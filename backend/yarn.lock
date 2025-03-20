@@ -1894,6 +1894,11 @@ minimatch@^9.0.4:
   dependencies:
     brace-expansion "^2.0.1"
 
+module-alias@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.npmjs.org/module-alias/-/module-alias-2.2.3.tgz"
+  integrity sha512-23g5BFj4zdQL/b6tor7Ji+QY4pEfNH784BMslY9Qb0UnJWRAt+lQGLYmRaM0KDBwIG23ffEBELhZDP2rhi9f/Q==
+
 mongodb-connection-string-url@^3.0.0:
   version "3.0.2"
   resolved "https://registry.npmjs.org/mongodb-connection-string-url/-/mongodb-connection-string-url-3.0.2.tgz"

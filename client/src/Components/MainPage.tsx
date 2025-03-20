@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
 import { FundraisingV1__factory } from "../typechain";
-import { FundraisingStatusEnum } from "../utils/enums";
+import { FundraisingStatusEnum } from "shared/models/Fundraising";
 
 const MainPage = () => {
   const { role } = useAuth();
@@ -26,7 +26,7 @@ const MainPage = () => {
       );
 
       let requestStatuses: FundraisingStatusEnum[] = [];
-      switch (role) {
+      switch (userRole) {
         case UserRole.user:
           requestStatuses.push(FundraisingStatusEnum.ApprovedByManagers);
           break;
@@ -95,7 +95,7 @@ const MainPage = () => {
                 <h3>{fundraiser.title}</h3>
                 <p>{fundraiser.description}</p>
                 <p>Goal: {fundraiser.goal} ETH</p>
-                <button>Donate</button>
+                { fundraiser}<button>Approve</button>
               </div>
             ))
           ) : (

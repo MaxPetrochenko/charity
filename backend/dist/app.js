@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+require("tsconfig-paths/register");
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
@@ -30,14 +31,14 @@ app.use((req, res, next) => {
 });
 mongoose_1.default
     //.connect(process.env.MONGO_URI!)
-    .connect('mongodb://127.0.0.1:27017')
+    .connect("mongodb://127.0.0.1:27017")
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.log(err));
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/fundraising", authMiddleware_1.protect, fundraisingRoutes_1.default);
 app.get("/api/protected", (req, res) => {
     const token = req.cookies.token; // Get token from HTTP-only cookie
-    const JWT_SECRET = 'myrandomjwtsecret';
+    const JWT_SECRET = process.env.JWT_SECRET;
     if (!token)
         return res.status(401).json({ message: "Unauthorized" });
     try {

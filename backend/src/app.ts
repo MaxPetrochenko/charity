@@ -7,6 +7,7 @@ import { protect } from "./middleware/authMiddleware";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+import "module-alias/register";
 
 dotenv.config({ path: ".env" });
 const app = express();

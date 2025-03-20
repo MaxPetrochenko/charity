@@ -14,9 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const User_1 = __importDefault(require("../models/User"));
+const User_1 = __importDefault(require("@shared/models/User"));
+const dotenv_1 = __importDefault(require("dotenv"));
 const router = express_1.default.Router();
-const JWT_SECRET = "myrandomjwtsecret";
+dotenv_1.default.config();
 // Register new user
 router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("REGISTER");
@@ -46,6 +47,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
+        const JWT_SECRET = process.env.JWT_SECRET;
         const token = jsonwebtoken_1.default.sign({ userId: user._id }, JWT_SECRET, {
             expiresIn: "1h",
         });
@@ -58,7 +60,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         return res.json(user);
     }
     catch (error) {
-        res.status(500).json({ message: "Server Error" });
+        res.status(500).json({ message: error });
     }
 }));
 exports.default = router;

@@ -1,9 +1,7 @@
 import express, { Request, Response } from "express";
 import Fundraising from "../models/Fundraising";
-import User from "../models/User";
-import { IUser } from "../models/User";
+import { FundraisingStatusEnum } from "shared/models/Fundraising";
 import { IUserRequest } from "../middleware/authMiddleware";
-import { FundraisingStatusEnum } from "../models/Fundraising";
 
 const router = express.Router();
 
@@ -32,7 +30,7 @@ router.put("/approve/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   const { userId, role } = (req as IUserRequest).user; // From JWT token
 
-  if (role !== "admin") {
+  if (role == "user") {
     return res.status(403).json({ message: "Not authorized" });
   }
 
@@ -42,7 +40,7 @@ router.put("/approve/:id", async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Fundraising not found" });
     }
 
-    fundraising.approved = true;
+    fundraising.status = FundraisingStatusEnum.Pending;
     await fundraising.save();
 
     res.json(fundraising);
